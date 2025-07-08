@@ -1,0 +1,36 @@
+import mongoose from "mongoose";
+
+const AttributeSchema = new mongoose.Schema({
+    name :{
+        type : String,
+        required : true
+    },
+    values : {
+        type : [String],
+        required : true,
+    }
+})
+
+const CategorySchema = new mongoose.Schema({
+    name :{
+        type:String,
+        required:true,
+        trim:true,
+    },
+    slug :{
+        type:String,
+        unique : true,
+    },
+    parentId : {
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Category",
+        default : null
+    },
+    attributes : [AttributeSchema],
+    image : {type : String},
+    description :{ type : String},
+    isFeatured : {type:Boolean , default : false}
+},{timestamps : true})
+
+
+export const Category = mongoose.model("Category", CategorySchema);
