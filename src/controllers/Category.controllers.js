@@ -1,5 +1,5 @@
-import { Category } from "../models/Category.model"
-import { generateSlug } from "../util/slugify";
+import { Category } from "../models/Category.model.js"
+import { generateSlug } from "../util/slugify.js";
 
 
 //CREATE CATEGORY 

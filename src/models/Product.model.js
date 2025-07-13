@@ -1,5 +1,6 @@
 import mongoose, { trusted } from "mongoose";
 
+
 const VariantsSchema = {
     sku : String,
     attributes : Object,
@@ -24,7 +25,7 @@ const ProductSchema = new mongoose.Schema(
     },
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: Category,
+      ref: "Category",
       required: true,
     },
     attributes: Object,
@@ -49,8 +50,8 @@ const ProductSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    tags: [string],
-    relatedProductIds: [{ type: mongoose.model.Types.ObjectId, ref: Product }],
+    tags: [String],
+    relatedProductIds: [{ type: mongoose.Schema.Types.ObjectId , ref: "Product" }],
     isFeatured: {
       type: Boolean,
       default: false,
@@ -59,7 +60,7 @@ const ProductSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    description: string,
+    description: String,
     images: [String],
     status: {
       type: String,

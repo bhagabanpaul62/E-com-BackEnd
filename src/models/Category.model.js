@@ -3,11 +3,11 @@ import mongoose from "mongoose";
 const AttributeSchema = new mongoose.Schema({
     name :{
         type : String,
-        required : true
+        
     },
     values : {
         type : [String],
-        required : true,
+        
     }
 })
 

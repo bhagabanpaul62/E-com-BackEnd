@@ -1,23 +1,23 @@
-import { Product } from "../models/Product.model";
-import { Category } from "../models/Category.model";
-import { generateSlug } from "../util/slugify";
+import { Product } from "../models/Product.model.js";
 
-//CREATE PRODUCT
+import { generateSlug } from "../util/slugify.js";
+
+// CREATE PRODUCT
 export const createProduct = async (req, res) => {
   try {
     let product = { ...req.body };
 
-    //generate slug
-    if (!product.slag && product.name) {
-      product.slag = generateSlug(product.name);
+    // ✅ Generate slug
+    if (!product.slug && product.name) {
+      product.slug = generateSlug(product.name);
     }
 
-    //Final Price fallback
+    // ✅ Final Price fallback
     if (!product.finalPrice && product.price) {
       product.finalPrice = product.price;
     }
 
-    //Calculate Discount
+    // ✅ Calculate discount
     if (
       product.price &&
       product.finalPrice &&
@@ -30,30 +30,34 @@ export const createProduct = async (req, res) => {
       product.discount = 0;
     }
 
-    //Calculate Total Stock From Variants
+    // ✅ Calculate total stock from variants
     if (Array.isArray(product.variants) && product.variants.length > 0) {
       product.stock = product.variants.reduce(
         (sum, v) => sum + (v.stock || 0),
         0
       );
     }
+
+    // ✅ Create product in DB
     const newProduct = await Product.create(product);
     res.status(201).json(newProduct);
+
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("❌ Product creation failed:", error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
 
 
-//GET ALL PRODUCTS 
-export const getAllProducts = async(req,res)=>{
-    try {
-        const products = await Product.find().populate("Category","name slag")
-        res.status(200).json(products);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-}
+// GET ALL PRODUCTS
+export const getAllProducts = async (req, res) => {
+  try {
+    const products = await Product.find().populate("categoryId", "name slag");
+    res.status(200).json(products);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
 
 //GET PRODUCTS BY SLUG
