@@ -1,27 +1,63 @@
-import mongoose, { trusted } from "mongoose";
+import mongoose from "mongoose";
 
-
-const VariantsSchema = {
-    sku : String,
-    attributes : Object,
-    price :Number,
-    stock : Number,
-    images : [String],
-    isDefault : {
-        type : Boolean,
-        default:true,
-    }
-}
+const VariantsSchema =new mongoose.Schema({
+  sku: String,
+  attributes: Object,
+  price: Number,
+  stock: Number,
+  images: [String],
+  isDefault: {
+    type: Boolean,
+    default: true,
+  },
+},{_id:true})
+const ReturnPolicySchema = {
+  isReturnable: {
+    type: Boolean,
+    default: true,
+  },
+  isReturnDays: Number,
+  isReturnCost: Number,
+};
+const ShippingDetailsSchema = {
+  weight: Number,
+  weightUnit: {
+    type: String,
+    enum: ["kg", "g", "lb"],
+    default: "kg",
+},
+  height: Number,
+  width: Number,
+  depth: Number, // (optional)
+  dimensionUnit: {
+    type: String,
+    enum: ["cm", "mm", "inch"],
+    default: "cm",
+  },
+  shippingOption: [
+    {
+      shippingType: {
+        type: String,
+        enum: ["Express", "Normal"],
+        default: "Normal",
+      },
+      cost: Number,
+      estimatedDays: Number,
+    },
+  ],
+};
 
 const ProductSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      require: true,
+      required: true,
+      trim: true,
     },
-    slag: {
+    slug: {
       type: String,
       unique: true,
+      trim: true,
     },
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -34,13 +70,11 @@ const ProductSchema = new mongoose.Schema(
       type: Number,
       default: 0,
       min: 0,
-      
     },
     finalPrice: {
       type: Number,
       default: 0,
       min: 0,
-     
     },
     discount: {
       type: Number,
@@ -51,12 +85,18 @@ const ProductSchema = new mongoose.Schema(
       default: 0,
     },
     tags: [String],
-    relatedProductIds: [{ type: mongoose.Schema.Types.ObjectId , ref: "Product" }],
+    relatedProductIds: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
+    ],
     isFeatured: {
       type: Boolean,
       default: false,
     },
     isNewArrival: {
+      type: Boolean,
+      default: false,
+    },
+    isTrending: {
       type: Boolean,
       default: false,
     },
@@ -67,11 +107,42 @@ const ProductSchema = new mongoose.Schema(
       enum: ["active", "inactive"],
       default: "active",
     },
-    seoTitle: String,
-    seoDescription: String,
+    seoTitle: {
+      type: String,
+      default: function () {
+        return this.name;
+      },
+    },
+    seoDescription: {
+      type: String,
+      default: function () {
+        return this.description;
+      },
+    },
+    returnPolicy: ReturnPolicySchema,
+    brand: String,
+    warranty: {
+      description: String,
+      warrantyType: {
+        type: String,
+        enum: ["Brand", "Platform"],
+        default: "platform",
+      },
+      policy: String,
+    },
+
+    averageRating: {
+      min: 0,
+      max: 5,
+      type: Number,
+    },
+    totalReview: {
+      type: Number,
+      min: 0,
+    },
+    shippingDetails: ShippingDetailsSchema,
   },
   { timestamps: true }
 );
 
-
-export const Product = mongoose.model("Product" , ProductSchema);
+export const Product = mongoose.model("Product", ProductSchema);

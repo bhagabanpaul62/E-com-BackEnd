@@ -34,7 +34,7 @@ export const getAllCategories = async (req,res)=>{
     }
 };
 
-
+    
 //GET ONE CATEGORY
 export const getCategoryById = async(req,res)=>{
     try {
