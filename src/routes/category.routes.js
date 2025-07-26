@@ -1,10 +1,10 @@
 import express from "express"
-import { createCategory , getCategoryById , getAllCategories } from "../controllers/Category.controllers.js"
+import { viewAllCategory,viewCategoryById, viewCategoryByIdFroUser, viewFeaturedCategoriesForUser } from "../controllers/Category.controllers.js";
 
 const router =express.Router()
 
-router.post("/",createCategory);
-router.get("/",getAllCategories);
-router.get("/:id",getCategoryById);
+router.route("/").get(viewFeaturedCategoriesForUser);
+router.route("/:id").get(viewCategoryByIdFroUser);
+
 
 export default router;

@@ -288,7 +288,7 @@ export const logout = asyncHandler(async (req, res) => {
     const {accessToken,NewRefreshToken} = await generateAccessAndRefreshTokens(user._id)
    
     await User.findByIdAndUpdate(
-      user_id,
+      user._id,
       {
         $set:{
           refreshToken : NewRefreshToken

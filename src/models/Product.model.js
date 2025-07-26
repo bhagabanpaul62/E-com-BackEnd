@@ -1,25 +1,33 @@
 import mongoose from "mongoose";
 
-const VariantsSchema =new mongoose.Schema({
-  sku: String,
-  attributes: Object,
-  price: Number,
-  stock: Number,
-  images: [String],
-  isDefault: {
-    type: Boolean,
-    default: true,
+const VariantsSchema = new mongoose.Schema(
+  {
+    sku: String,
+    attributes: Object,
+    price: Number,
+    stock: Number,
+    
+    images: [String],
+    isDefault: {
+      type: Boolean,
+      default: true,
+    },
   },
-},{_id:true})
-const ReturnPolicySchema = {
+  { _id: true }
+);
+
+
+const ReturnPolicySchema = new mongoose.Schema({
   isReturnable: {
     type: Boolean,
     default: true,
   },
   isReturnDays: Number,
   isReturnCost: Number,
-};
-const ShippingDetailsSchema = {
+});
+
+
+const ShippingDetailsSchema = new mongoose.Schema({
   weight: Number,
   weightUnit: {
     type: String,
@@ -45,7 +53,7 @@ const ShippingDetailsSchema = {
       estimatedDays: Number,
     },
   ],
-};
+});
 
 const ProductSchema = new mongoose.Schema(
   {
@@ -71,7 +79,7 @@ const ProductSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
-    finalPrice: {
+    mrpPrice: {
       type: Number,
       default: 0,
       min: 0,
@@ -101,7 +109,7 @@ const ProductSchema = new mongoose.Schema(
       default: false,
     },
     description: String,
-    images: [String],
+    
     status: {
       type: String,
       enum: ["active", "inactive"],

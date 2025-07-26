@@ -2,8 +2,6 @@ import express from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser"
 
-
-
 const app = express();
 
 app.use(
@@ -18,14 +16,17 @@ app.use(express.static("public"))
 app.use(cookieParser())
 
 //Routes import 
-import categoryRoute from "./routes/category.routes.js"
-import productRoute from "./routes/product.route.js"
 import userRouter from"./routes/user.routes.js"
+import adminRouter from"./routes/admin.routes.js"
+import { verifyJwt } from "./middlewares/auth.middleware.js";
+import { isAdmin } from "./middlewares/isAdmin.middleware.js";
 
-//Routes Declaration
+//User Routes Declaration
 app.use("/api/users",userRouter)
-app.use("/api/category",categoryRoute)
-app.use("/api/product",productRoute)
+
+//Admin Routes Declaration
+app.use("/api/admin", verifyJwt,isAdmin,adminRouter);
+
 
 
 export {app}

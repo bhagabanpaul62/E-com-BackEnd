@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { generateSlug } from "../util/slugify.js";
 
 const AttributeSchema = new mongoose.Schema({
     name :{
@@ -34,3 +35,4 @@ const CategorySchema = new mongoose.Schema({
 
 
 export const Category = mongoose.model("Category", CategorySchema);
+
