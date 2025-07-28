@@ -63,10 +63,12 @@ export const sendOtp = asyncHandler(async (req, res) => {
 
 //OTP VALIDATION
 export const OtpValidation = asyncHandler(async (req, res) => {
+  console.log("REQ BODY RECEIVED:", req.body);
   const { email, code } = req.body;
 
   // Validation
   if (!email || !code) {
+    console.log("❌ Missing email or code");
     throw new ApiError(400, "Enter both email and OTP code");
   }
 
