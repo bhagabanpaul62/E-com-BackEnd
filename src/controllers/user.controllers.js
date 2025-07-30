@@ -174,7 +174,7 @@ export const registerUser = asyncHandler(async (req, res, next) => {
   );
 
   //delete the otp record
-  await Otp.deleteOne({email});
+  await Otp.deleteMany({email});
 
   return res
     .status(201)
@@ -187,6 +187,8 @@ export const registerUser = asyncHandler(async (req, res, next) => {
 
 //LOGIN
 export const login = asyncHandler(async (req, res, next) => {
+  console.log(req.body);
+  
   const { email, password } = req.body;
 
   //null checking

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { dashBoard } from "../controllers/admin.controllers.js";
-import { createCategory, deleteCategoryById, editCategoryById, viewAllCategory, viewCategoryById } from "../controllers/Category.controllers.js";
+import { createCategory, deleteCategoryById, editCategoryById, viewAllCategory, viewCategoryById } from "../controllers/category.controllers.js";
 import { upload } from "../middlewares/multer.middlewares.js";
 import { addProduct, deleteById, editProductById, viewAllProductsByIdInAdmin, viewAllProductsInAdmin,  } from "../controllers/product.controllers.js";
 
@@ -15,7 +15,15 @@ router.route("/add-category").post(upload.fields([
         maxCount : 1,
     }
 ]),createCategory)
-router.route("/edit-category/:id").patch(editCategoryById)
+router.route("/edit-category/:id").patch(
+  upload.fields([
+    {
+      name: "categoryImage",
+      maxCount: 1,
+    },
+  ]),
+  editCategoryById
+);
 router.route("/delete-category/:id").delete(deleteCategoryById)
 router.route("/category").get(viewAllCategory);
 router.route("/category/:id").get(viewCategoryById);

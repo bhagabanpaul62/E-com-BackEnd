@@ -1,5 +1,5 @@
 import express from "express"
-import { viewAllCategory,viewCategoryById, viewCategoryByIdFroUser, viewFeaturedCategoriesForUser } from "../controllers/Category.controllers.js";
+import { viewAllCategory,viewCategoryById, viewCategoryByIdFroUser, viewFeaturedCategoriesForUser } from "../controllers/category.controllers.js";
 
 const router =express.Router()
 

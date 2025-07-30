@@ -20,18 +20,21 @@ const CategorySchema = new mongoose.Schema({
     },
     slug :{
         type:String,
-        unique : true,
+        trim:true,
     },
     parentId : {
         type:mongoose.Schema.Types.ObjectId,
         ref:"Category",
-        default : null
+        default : null,
     },
     attributes : [AttributeSchema],
     image : {type : String},
     description :{ type : String},
     isFeatured : {type:Boolean , default : false}
 },{timestamps : true})
+
+
+
 
 
 export const Category = mongoose.model("Category", CategorySchema);
