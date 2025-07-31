@@ -198,7 +198,7 @@ export const login = asyncHandler(async (req, res, next) => {
 
   const record = await User.findOne({ email: email });
   if (!record) {
-    throw new ApiError(400, "no user found");
+    throw new ApiError(401, "no user found");
   }
 
   //check password and emailId
@@ -222,7 +222,9 @@ export const login = asyncHandler(async (req, res, next) => {
 
   const options = {
     httpOnly: true, // if we don't provide this true our cookie any one can modified in frontend
-    secure: false, // it true on production
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    path: "/", // it true on production
   };
   return res
   .status(200)
@@ -257,9 +259,11 @@ export const logout = asyncHandler(async (req, res) => {
   )
 
   const options = {
-    httpOnly : true,
-    secure : false, // it true on production
-  }
+    httpOnly: true, // if we don't provide this true our cookie any one can modified in frontend
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    path: "/", // it true on production
+  };
 
   return res 
   .status(200)
@@ -304,8 +308,10 @@ export const logout = asyncHandler(async (req, res) => {
         }
     )
    const options = {
-     httpOnly: true,
-     secure: false, // it true on production
+     httpOnly: true, // if we don't provide this true our cookie any one can modified in frontend
+     secure: process.env.NODE_ENV === "production",
+     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+     path: "/", // it true on production
    };
  
    return res

@@ -97,6 +97,8 @@ UserSchema.methods.generateAccessToken = async function () {
       email: this.email,
       name: this.name,
       isAdmin:this.isAdmin,
+      status:this.status,
+      
     },
     process.env.ACCESS_TOKEN_SECRET,
     {

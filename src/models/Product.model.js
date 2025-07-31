@@ -64,13 +64,18 @@ const ProductSchema = new mongoose.Schema(
     },
     slug: {
       type: String,
-      unique: true,
+      
+    
       trim: true,
     },
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
-      required: true,
+      
+    },
+    asin: {
+      type: String,
+      trim: true,
     },
     attributes: Object,
     variants: [VariantsSchema],
@@ -87,6 +92,9 @@ const ProductSchema = new mongoose.Schema(
     discount: {
       type: Number,
       default: 0,
+    },
+    mainImage : {
+      type :String,
     },
     totalStock: {
       type: Number,
@@ -133,7 +141,7 @@ const ProductSchema = new mongoose.Schema(
       description: String,
       warrantyType: {
         type: String,
-        enum: ["Brand", "Platform"],
+        enum: ["Brand", "Platform","Seller"],
         default: "platform",
       },
       policy: String,
