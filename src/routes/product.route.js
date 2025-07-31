@@ -2,7 +2,7 @@ import express from "express";
 import {
   viewAllProductsById,
   viewAllProductsInUser,
-} from "../controllers/duct.controllers.js";
+} from "../controllers/product.controllers.js";
 
 const router = express.Router();
 

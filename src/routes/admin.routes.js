@@ -6,7 +6,7 @@ import {
   editCategoryById,
   viewAllCategory,
   viewCategoryById,
-} from "../controllers/gory.controllers.js";
+} from "../controllers/category.controllers.js";
 import { upload } from "../middlewares/multer.middlewares.js";
 import {
   addProduct,
@@ -15,7 +15,7 @@ import {
   viewAllProductsById,
   viewAllProductsByIdInAdmin,
   viewAllProductsInAdmin,
-} from "../controllers/duct.controllers.js";
+} from "../controllers/product.controllers.js";
 
 const router = Router();
 

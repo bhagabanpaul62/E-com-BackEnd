@@ -4,7 +4,7 @@ import {
   viewCategoryById,
   viewCategoryByIdFroUser,
   viewFeaturedCategoriesForUser,
-} from "../controllers/gory.controllers.js";
+} from "../controllers/category.controllers.js";
 
 const router = express.Router();
 
