@@ -15,6 +15,7 @@ import {
   viewAllProductsById,
   viewAllProductsByIdInAdmin,
   viewAllProductsInAdmin,
+  updateStatus
 } from "../controllers/product.controllers.js";
 
 const router = Router();
@@ -48,7 +49,8 @@ router.route("/category/:id").get(viewCategoryById);
 router.route("/add-product").post(upload.any(), addProduct);
 router.route("/edit-product/:id").patch(upload.any(), editProductById);
 router.route("/delete-product/:id").delete(deleteById);
+router.route("/edit-status/:id").patch(updateStatus)
 router.route("/view-products").get(viewAllProductsInAdmin);
-router.route("/view-product-by-id").get(viewAllProductsByIdInAdmin);
+router.route("/view-product-by-id/:id").get(viewAllProductsByIdInAdmin);
 
 export default router;

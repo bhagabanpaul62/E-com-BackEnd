@@ -223,7 +223,7 @@ export const login = asyncHandler(async (req, res, next) => {
   const options = {
     httpOnly: true, // if we don't provide this true our cookie any one can modified in frontend
     secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    sameSite: "none",
     path: "/", // it true on production
   };
   return res

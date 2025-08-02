@@ -6,7 +6,7 @@ const VariantsSchema = new mongoose.Schema(
     attributes: Object,
     price: Number,
     stock: Number,
-    
+
     images: [String],
     isDefault: {
       type: Boolean,
@@ -15,7 +15,6 @@ const VariantsSchema = new mongoose.Schema(
   },
   { _id: true }
 );
-
 
 const ReturnPolicySchema = new mongoose.Schema({
   isReturnable: {
@@ -26,14 +25,13 @@ const ReturnPolicySchema = new mongoose.Schema({
   isReturnCost: Number,
 });
 
-
 const ShippingDetailsSchema = new mongoose.Schema({
   weight: Number,
   weightUnit: {
     type: String,
     enum: ["kg", "g", "lb"],
     default: "kg",
-},
+  },
   height: Number,
   width: Number,
   depth: Number, // (optional)
@@ -64,14 +62,12 @@ const ProductSchema = new mongoose.Schema(
     },
     slug: {
       type: String,
-      
-    
+
       trim: true,
     },
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
-      
     },
     asin: {
       type: String,
@@ -93,8 +89,8 @@ const ProductSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    mainImage : {
-      type :String,
+    mainImage: {
+      type: String,
     },
     totalStock: {
       type: Number,
@@ -117,7 +113,7 @@ const ProductSchema = new mongoose.Schema(
       default: false,
     },
     description: String,
-    
+
     status: {
       type: String,
       enum: ["active", "inactive"],
@@ -141,7 +137,7 @@ const ProductSchema = new mongoose.Schema(
       description: String,
       warrantyType: {
         type: String,
-        enum: ["Brand", "Platform","Seller"],
+        enum: ["Brand", "Platform", "Seller"],
         default: "platform",
       },
       policy: String,

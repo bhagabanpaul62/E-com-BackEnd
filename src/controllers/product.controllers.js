@@ -285,9 +285,32 @@ export const editProductById = asyncHandler(async (req, res) => {
         if (variant._id) {
           const existing = existingProduct.variants.id(variant._id);
           if (existing) {
+            // Check if variant has existingImages field (from frontend)
+            const hasExistingImagesField = variant.existingImages !== undefined;
+            
+            // Determine which images to use
+            let finalImages;
+            
+            if (hasExistingImagesField) {
+              // If existingImages field is provided, use it as the base
+              // and add any newly uploaded images
+              finalImages = [...variant.existingImages];
+              
+              // Add newly uploaded images if any
+              if (imageUrls.length > 0) {
+                finalImages = [...finalImages, ...imageUrls];
+              }
+            } else {
+              // Fall back to previous behavior
+              const shouldReplaceImages = req.body[`replace_variant_images_${i}`] === "true";
+              finalImages = shouldReplaceImages
+                ? imageUrls // This will be empty array if no new images, effectively clearing existing ones
+                : (imageUrls.length ? imageUrls : existing.images);
+            }
+            
             existing.set({
               ...variant,
-              images: imageUrls.length ? imageUrls : existing.images,
+              images: finalImages,
             });
             return existing;
           }
@@ -350,6 +373,30 @@ export const viewAllProductsInAdmin = asyncHandler(async (req, res) => {
   res
     .status(200)
     .json(new ApiResponse(200, product, { message: "product is found" }));
+});
+
+//update status
+export const updateStatus = asyncHandler(async (req, res) => {
+  const { id } = req.params; // Fix typo: req.param ➝ req.params
+  const { status } = req.body;
+
+  if (!status) {
+    throw new ApiError(400, "Status is required");
+  }
+
+  const product = await Product.findByIdAndUpdate(
+    id,
+    { status },
+    { new: true }
+  );
+
+  if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, product, "Status updated successfully"));
 });
 
 //view products by id in admin GET

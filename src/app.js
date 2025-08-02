@@ -7,7 +7,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "https://e-com-lemon-omega.vercel.app", // your Vercel domain
+    origin: "http://localhost:3000" ,// your Vercel domain
     credentials: true, // allows cookies to be sent
   })
 );
