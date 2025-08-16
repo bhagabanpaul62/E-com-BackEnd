@@ -12,7 +12,7 @@ const CouponSchema = new mongoose.Schema(
 
     discountType: {
       type: String,
-      enum: ["Flat", "Percentage"],
+      enum: ["flat", "percentage"],
       required: true,
     },
 
@@ -54,8 +54,8 @@ const CouponSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["Active", "Inactive"],
-      default: "Active",
+      enum: ["active", "inactive"],
+      default: "active",
     },
   },
   { timestamps: true }

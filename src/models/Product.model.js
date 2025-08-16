@@ -37,7 +37,7 @@ const ShippingDetailsSchema = new mongoose.Schema({
   depth: Number, // (optional)
   dimensionUnit: {
     type: String,
-    enum: ["cm", "mm", "inch"],
+    enum: ["cm", "m", "in"],
     default: "cm",
   },
   shippingOption: [
@@ -51,6 +51,25 @@ const ShippingDetailsSchema = new mongoose.Schema({
       estimatedDays: Number,
     },
   ],
+});
+
+const ProductDimensionSchema = new mongoose.Schema({
+  height: Number,
+  width: Number,
+  length: Number,
+  dimensionUnit: {
+    type: String,
+    enum: ["cm", "m", "in"],
+    default: "cm",
+  },
+  weight: {
+    type: Number,
+  },
+  weightUnit: {
+    type: String,
+    enum: ["kg", "g", "lb"],
+    default: "kg",
+  },
 });
 
 const ProductSchema = new mongoose.Schema(
@@ -112,6 +131,10 @@ const ProductSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isSale: {
+      type: Boolean,
+      default: false,
+    },
     description: String,
 
     status: {
@@ -153,8 +176,56 @@ const ProductSchema = new mongoose.Schema(
       min: 0,
     },
     shippingDetails: ShippingDetailsSchema,
+    productDimension: ProductDimensionSchema,
   },
   { timestamps: true }
 );
+
+ProductSchema.pre("findOneAndUpdate", async function (next) {
+  let update = this.getUpdate() || {};
+  if (!update.$set) update.$set = {};
+
+  // Extract price & mrpPrice from update
+  let price = update.$set.price ?? update.price;
+  let mrpPrice = update.$set.mrpPrice ?? update.mrpPrice;
+  let variants = update.$set.variants ?? update.variants;
+
+  // If needed values are missing, fetch from DB
+  if (price === undefined || mrpPrice === undefined || variants === undefined) {
+    const docToUpdate = await this.model.findOne(this.getQuery());
+    if (price === undefined) price = docToUpdate.price;
+    if (mrpPrice === undefined) mrpPrice = docToUpdate.mrpPrice;
+    if (variants === undefined) variants = docToUpdate.variants || [];
+  }
+
+  // 1️⃣ Calculate discount
+  if (
+    typeof price === "number" &&
+    typeof mrpPrice === "number" &&
+    mrpPrice > 0
+  ) {
+    update.$set.discount = Math.round(((mrpPrice - price) / mrpPrice) * 100);
+  }
+
+  // 2️⃣ Calculate total stock
+  if (Array.isArray(variants)) {
+    const totalStock = variants.reduce(
+      (sum, v) => sum + (typeof v.stock === "number" ? v.stock : 0),
+      0
+    );
+    update.$set.totalStock = totalStock;
+  }
+
+  this.setUpdate(update);
+  next();
+});
+
+ProductSchema.pre("save",function(next){
+  if(Array.isArray(this.variants)){
+    const totalStock = this.variants.reduce((sum,v) => (typeof v.stock == "number" ? v.stock : 0), 0);
+     this.totalStock = totalStock;
+  }
+ next();
+})
 
 export const Product = mongoose.model("Product", ProductSchema);

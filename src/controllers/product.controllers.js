@@ -8,7 +8,6 @@ import { uploadCloudinary as uploadToCloudinary } from "../util/cloudinary.js";
 import { generateSlug } from "../util/slugify.js";
 
 // CREATE PRODUCT
-
 export const addProduct = asyncHandler(async (req, res) => {
   console.log("▶️ [START] addProduct called");
   console.log("📦 req.body keys:", Object.keys(req.body || {}));
@@ -41,31 +40,30 @@ export const addProduct = asyncHandler(async (req, res) => {
   // ▶️ Handle main image
   console.log("image", files.productImage?.[0]);
 
-const filesArray = Array.isArray(req.files) ? req.files : [];
+  const filesArray = Array.isArray(req.files) ? req.files : [];
 
-const mainImageFile = filesArray.find(
-  (file) => file.fieldname === "productImage"
-);
-console.log("🖼️ Found main image file:", mainImageFile?.originalname);
+  const mainImageFile = filesArray.find(
+    (file) => file.fieldname === "productImage"
+  );
+  console.log("🖼️ Found main image file:", mainImageFile?.originalname);
 
-if (mainImageFile) {
-  try {
-    console.log("📤 Uploading main image to Cloudinary...");
-    const mainImageResult = await uploadToCloudinary(mainImageFile.path);
-    if (mainImageResult?.secure_url) {
-      productData.mainImage = mainImageResult.secure_url;
-      console.log("✅ Main image uploaded:", mainImageResult.secure_url);
-    } else {
-      console.warn("⚠️ Cloudinary returned no secure_url for main image");
+  if (mainImageFile) {
+    try {
+      console.log("📤 Uploading main image to Cloudinary...");
+      const mainImageResult = await uploadToCloudinary(mainImageFile.path);
+      if (mainImageResult?.secure_url) {
+        productData.mainImage = mainImageResult.secure_url;
+        console.log("✅ Main image uploaded:", mainImageResult.secure_url);
+      } else {
+        console.warn("⚠️ Cloudinary returned no secure_url for main image");
+      }
+    } catch (err) {
+      console.error("❌ Main image upload failed:", err);
+      throw new ApiError(500, "Failed to upload main product image");
     }
-  } catch (err) {
-    console.error("❌ Main image upload failed:", err);
-    throw new ApiError(500, "Failed to upload main product image");
+  } else {
+    console.log("ℹ️ No main image provided in request");
   }
-} else {
-  console.log("ℹ️ No main image provided in request");
-}
-
 
   // ▶️ Handle variants and their images
   if (req.body.variants) {
@@ -149,9 +147,13 @@ if (mainImageFile) {
         console.log(`ℹ️ No images provided for variant_${i}`);
       }
 
+      // Merge existing images from frontend with new uploads
       return {
         ...variant,
-        images: variantImages,
+        images: [
+          ...(Array.isArray(variant.images) ? variant.images : []),
+          ...variantImages,
+        ],
         price: Number(variant.price) || 0,
         stock: Number(variant.stock) || 0,
       };
@@ -218,6 +220,8 @@ export const editProductById = asyncHandler(async (req, res) => {
   const productData = JSON.parse(req.body.product || "{}");
   const files = req.files;
 
+  console.log("files :: ", files);
+
   const existingProduct = await Product.findById(id);
   if (!existingProduct) throw new ApiError(404, "Product not found");
 
@@ -244,6 +248,9 @@ export const editProductById = asyncHandler(async (req, res) => {
   if (productData.shippingDetails)
     existingProduct.shippingDetails = productData.shippingDetails;
 
+  if (productData.productDimension)
+    existingProduct.productDimension = productData.productDimension;
+
   if (productData.returnPolicy)
     existingProduct.returnPolicy = productData.returnPolicy;
 
@@ -255,62 +262,73 @@ export const editProductById = asyncHandler(async (req, res) => {
     existingProduct.relatedProducts = productData.relatedProducts;
 
   // ✅ 3. Replace product images if new ones are uploaded
-  if (files?.productImage) {
-    const imageUrls = await Promise.all(
-      files.productImage.map(async (file) => {
-        const uploaded = await uploadToCloudinary(file.path);
-        return uploaded.secure_url;
-      })
-    );
-    existingProduct.images = imageUrls;
+  console.log("📁 Processing file upload for field: productImage");
+  console.log("Files array:", files);
+
+  // Handle both array and object formats from multer
+  const filesArray = Array.isArray(files)
+    ? files
+    : Object.values(files || {}).flat();
+  const mainImageFile = filesArray.find(
+    (file) => file.fieldname === "productImage"
+  );
+
+  if (mainImageFile) {
+    try {
+      console.log("Processing main image update:", mainImageFile.path);
+      const uploaded = await uploadToCloudinary(mainImageFile.path);
+      if (uploaded?.secure_url) {
+        existingProduct.mainImage = uploaded.secure_url;
+        console.log("✅ Updated main image:", uploaded.secure_url);
+      } else {
+        console.error("❌ No secure_url in Cloudinary response");
+      }
+    } catch (err) {
+      console.error("❌ Failed to upload new main image:", err);
+      throw new ApiError(500, "Failed to upload new main image");
+    }
   }
 
   // ✅ 4. Update variants
   if (productData.variants && Array.isArray(productData.variants)) {
+    // Organize variant files by their fieldnames (variant_0_0, variant_0_1, ...)
+    const variantFilesMap = {};
+    const filesArray = Array.isArray(files)
+      ? files
+      : Object.values(files || {}).flat();
+    filesArray.forEach((file) => {
+      const match = file.fieldname?.match(/^variant_(\d+)_(\d+)$/);
+      if (match) {
+        const [_, variantIndex, imageIndex] = match;
+        if (!variantFilesMap[variantIndex]) variantFilesMap[variantIndex] = [];
+        variantFilesMap[variantIndex].push(file);
+      }
+    });
+
     const updatedVariants = await Promise.all(
       productData.variants.map(async (variant, i) => {
-        let imageField = `variant_${i}`;
         let imageUrls = [];
+        const variantFiles = variantFilesMap[i] || [];
 
-        if (files[imageField]) {
+        if (variantFiles.length > 0) {
           imageUrls = await Promise.all(
-            files[imageField].map(async (file) => {
+            variantFiles.map(async (file) => {
               const uploaded = await uploadToCloudinary(file.path);
               return uploaded.secure_url;
             })
           );
         }
 
-        // Check if it's an update or a new variant
+        // Merge existing images from frontend with new uploads
         if (variant._id) {
           const existing = existingProduct.variants.id(variant._id);
           if (existing) {
-            // Check if variant has existingImages field (from frontend)
-            const hasExistingImagesField = variant.existingImages !== undefined;
-            
-            // Determine which images to use
-            let finalImages;
-            
-            if (hasExistingImagesField) {
-              // If existingImages field is provided, use it as the base
-              // and add any newly uploaded images
-              finalImages = [...variant.existingImages];
-              
-              // Add newly uploaded images if any
-              if (imageUrls.length > 0) {
-                finalImages = [...finalImages, ...imageUrls];
-              }
-            } else {
-              // Fall back to previous behavior
-              const shouldReplaceImages = req.body[`replace_variant_images_${i}`] === "true";
-              finalImages = shouldReplaceImages
-                ? imageUrls // This will be empty array if no new images, effectively clearing existing ones
-                : (imageUrls.length ? imageUrls : existing.images);
-            }
-            
             existing.set({
               ...variant,
-              images: finalImages,
+              images: [
+                ...(Array.isArray(variant.images) ? variant.images : []),
+                ...imageUrls,
+              ],
             });
             return existing;
           }
@@ -319,7 +337,10 @@ export const editProductById = asyncHandler(async (req, res) => {
         // If no _id or not found, it's a new variant
         return {
           ...variant,
-          images: imageUrls,
+          images: [
+            ...(Array.isArray(variant.images) ? variant.images : []),
+            ...imageUrls,
+          ],
         };
       })
     );
@@ -377,16 +398,16 @@ export const viewAllProductsInAdmin = asyncHandler(async (req, res) => {
 
 //update status
 export const updateStatus = asyncHandler(async (req, res) => {
-  const { id } = req.params; // Fix typo: req.param ➝ req.params
-  const { status } = req.body;
+  const { id } = req.params;
+  const data = req.body;
 
-  if (!status) {
-    throw new ApiError(400, "Status is required");
+  if (!data || Object.keys(data).length === 0) {
+    throw new ApiError(400, "Data is required");
   }
 
   const product = await Product.findByIdAndUpdate(
     id,
-    { status },
+    { ...data },
     { new: true }
   );
 
@@ -397,6 +418,160 @@ export const updateStatus = asyncHandler(async (req, res) => {
   res
     .status(200)
     .json(new ApiResponse(200, product, "Status updated successfully"));
+});
+
+//update price
+export const updatePrice = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { price } = req.body;
+
+  if (!price) {
+    throw new ApiError(400, "Price is required");
+  }
+
+  const product = await Product.findByIdAndUpdate(id, { price }, { new: true });
+
+  if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, product, "Price updated successfully"));
+});
+
+//update stock
+export const updateStock = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { totalStock } = req.body;
+
+  if (totalStock === undefined) {
+    throw new ApiError(400, "Stock quantity is required");
+  }
+
+  const product = await Product.findByIdAndUpdate(
+    id,
+    { totalStock },
+    { new: true }
+  );
+
+  if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, product, "Stock updated successfully"));
+});
+
+// update single variant by variantId
+export const updateVariantById = asyncHandler(async (req, res) => {
+  const { variantId } = req.params;
+  const { sku, price, stock, attributes, isDefault } = req.body || {};
+
+  // Find product containing this variant
+  const product = await Product.findOne({ "variants._id": variantId });
+  if (!product) {
+    throw new ApiError(404, "Product or variant not found");
+  }
+
+  const variant = product.variants.id(variantId);
+  if (!variant) {
+    throw new ApiError(404, "Variant not found");
+  }
+
+  // Apply updates
+  if (sku !== undefined) variant.sku = sku;
+  if (price !== undefined) variant.price = Number(price) || 0;
+  if (stock !== undefined) variant.stock = Number(stock) || 0;
+  if (attributes !== undefined) {
+    if (typeof attributes === "string") {
+      try {
+        variant.attributes = JSON.parse(attributes);
+      } catch (e) {
+        variant.attributes = {};
+      }
+    } else {
+      variant.attributes = attributes;
+    }
+  }
+  if (isDefault !== undefined) variant.isDefault = !!isDefault;
+
+  // Recompute aggregates on product
+  const validPrices = product.variants
+    .map((v) => (typeof v.price === "number" ? v.price : 0))
+    .filter((p) => p > 0);
+  if (validPrices.length > 0) {
+    product.price = Math.min(...validPrices);
+  }
+
+  if (
+    typeof product.mrpPrice === "number" &&
+    typeof product.price === "number" &&
+    product.mrpPrice > product.price
+  ) {
+    product.discount = Math.round(
+      ((product.mrpPrice - product.price) / product.mrpPrice) * 100
+    );
+  } else {
+    product.discount = 0;
+  }
+
+  await product.save();
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { product, variant: variant.toObject() },
+        "Variant updated successfully"
+      )
+    );
+});
+
+// delete single variant by variantId
+export const deleteVariantById = asyncHandler(async (req, res) => {
+  const { variantId } = req.params;
+
+  const product = await Product.findOne({ "variants._id": variantId });
+  if (!product) {
+    throw new ApiError(404, "Product or variant not found");
+  }
+
+  // Remove the variant
+  const previousVariants = product.variants.length;
+  product.variants = product.variants.filter(
+    (v) => v._id.toString() !== variantId
+  );
+
+  if (previousVariants === product.variants.length) {
+    throw new ApiError(404, "Variant not found");
+  }
+
+  // Recompute product price and discount
+  const validPrices = product.variants
+    .map((v) => (typeof v.price === "number" ? v.price : 0))
+    .filter((p) => p > 0);
+  product.price = validPrices.length > 0 ? Math.min(...validPrices) : 0;
+
+  if (
+    typeof product.mrpPrice === "number" &&
+    typeof product.price === "number" &&
+    product.mrpPrice > product.price
+  ) {
+    product.discount = Math.round(
+      ((product.mrpPrice - product.price) / product.mrpPrice) * 100
+    );
+  } else {
+    product.discount = 0;
+  }
+
+  await product.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, product, "Variant deleted successfully"));
 });
 
 //view products by id in admin GET

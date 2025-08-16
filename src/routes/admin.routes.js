@@ -15,7 +15,11 @@ import {
   viewAllProductsById,
   viewAllProductsByIdInAdmin,
   viewAllProductsInAdmin,
-  updateStatus
+  updateStatus,
+  updatePrice,
+  updateStock,
+  updateVariantById,
+  deleteVariantById,
 } from "../controllers/product.controllers.js";
 
 const router = Router();
@@ -49,7 +53,11 @@ router.route("/category/:id").get(viewCategoryById);
 router.route("/add-product").post(upload.any(), addProduct);
 router.route("/edit-product/:id").patch(upload.any(), editProductById);
 router.route("/delete-product/:id").delete(deleteById);
-router.route("/edit-status/:id").patch(updateStatus)
+router.route("/edit-status/:id").patch(updateStatus);
+router.route("/edit-price/:id").patch(updatePrice);
+router.route("/edit-stock/:id").patch(updateStock);
+router.route("/edit-variant/:variantId").patch(updateVariantById);
+router.route("/delete-variant/:variantId").delete(deleteVariantById);
 router.route("/view-products").get(viewAllProductsInAdmin);
 router.route("/view-product-by-id/:id").get(viewAllProductsByIdInAdmin);
 
