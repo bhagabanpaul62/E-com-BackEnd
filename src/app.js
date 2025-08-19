@@ -1,34 +1,36 @@
-import express from "express"
-import cors from "cors"
-import cookieParser from "cookie-parser"
+import express from "express";
+import cors from "cors";
+import cookieParser from "cookie-parser";
 
 const app = express();
 
-
 app.use(
   cors({
-    origin: `${process.env.CORS_ORIGIN}`,// your Vercel domain
+    origin: process.env.CORS_ORIGIN || [
+      "https://tajbee-gthpgdbrafekddhm.centralindia-01.azurewebsites.net",
+      "http://localhost:3000",
+    ],
     credentials: true, // allows cookies to be sent
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   })
 );
 
-app.use(express.json({limit : "16kb"}))
-app.use(express.urlencoded({extended:true,limit:"16kb"}))
-app.use(express.static("public"))
-app.use(cookieParser())
+app.use(express.json({ limit: "16kb" }));
+app.use(express.urlencoded({ extended: true, limit: "16kb" }));
+app.use(express.static("public"));
+app.use(cookieParser());
 
-//Routes import 
-import userRouter from"./routes/user.routes.js"
-import adminRouter from"./routes/admin.routes.js"
+//Routes import
+import userRouter from "./routes/user.routes.js";
+import adminRouter from "./routes/admin.routes.js";
 import { verifyJwt } from "./middlewares/auth.middleware.js";
 import { isAdmin } from "./middlewares/isAdmin.middleware.js";
 
 //User Routes Declaration
-app.use("/api/users",userRouter)
+app.use("/api/users", userRouter);
 
 //Admin Routes Declaration
-app.use("/api/admin", verifyJwt,isAdmin,adminRouter);
+app.use("/api/admin", verifyJwt, isAdmin, adminRouter);
 
-
-
-export {app}
+export { app };
