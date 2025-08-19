@@ -7,7 +7,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:3000" ,// your Vercel domain
+    origin: `${process.env.CORS_ORIGIN}`,// your Vercel domain
     credentials: true, // allows cookies to be sent
   })
 );
