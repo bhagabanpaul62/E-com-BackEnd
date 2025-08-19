@@ -21,6 +21,12 @@ import {
   updateVariantById,
   deleteVariantById,
 } from "../controllers/product.controllers.js";
+import {
+  uploadBanner,
+  getBanners,
+  addBanner,
+  deleteBanner,
+} from "../controllers/ui.controllers.js";
 
 const router = Router();
 
@@ -60,5 +66,11 @@ router.route("/edit-variant/:variantId").patch(updateVariantById);
 router.route("/delete-variant/:variantId").delete(deleteVariantById);
 router.route("/view-products").get(viewAllProductsInAdmin);
 router.route("/view-product-by-id/:id").get(viewAllProductsByIdInAdmin);
+
+//admin banner management routes
+router.route("/banners/update").post(upload.any(), uploadBanner);
+router.route("/banners").get(getBanners);
+router.route("/banners/add").post(upload.single("banner"), addBanner);
+router.route("/banners/delete").delete(deleteBanner);
 
 export default router;
