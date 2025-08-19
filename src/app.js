@@ -7,6 +7,7 @@ const app = express();
 app.use(
   cors({
     origin: process.env.CORS_ORIGIN || [
+      "https://e-com-frontend-ebon-nine.vercel.app",
       "https://tajbee-gthpgdbrafekddhm.centralindia-01.azurewebsites.net",
       "http://localhost:3000",
     ],

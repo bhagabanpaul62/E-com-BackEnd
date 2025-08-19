@@ -12,6 +12,7 @@ import { verifyJwt } from "../middlewares/auth.middleware.js";
 import categoryRoute from "../routes/category.routes.js";
 import productRoute from "../routes/product.route.js";
 import { getBanners } from "../controllers/ui.controllers.js";
+import { validateToken } from "../controllers/validate-token.controller.js";
 
 const router = Router();
 
@@ -29,6 +30,7 @@ router.route("/register").post(
 router.route("/login").post(login);
 router.route("/logout").post(verifyJwt, logout);
 router.route("/refresh-token").post(refreshAccessToken);
+router.route("/validate-token").get(validateToken);
 
 //category Routes
 router.use("/category", categoryRoute);

@@ -207,8 +207,8 @@ export const login = asyncHandler(async (req, res, next) => {
 
   const options = {
     httpOnly: true, // if we don't provide this true our cookie any one can modified in frontend
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    secure: true, // Must be true for cross-domain cookies with SameSite=None
+    sameSite: "none", // Required for cross-domain cookies
     path: "/", // it true on production
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   };
