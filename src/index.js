@@ -24,7 +24,8 @@ connectDB()
 
     const PORT = process.env.PORT || 5000;
 
-    app.listen(PORT, () => {
+    // ✅ Important for Azure: listen on 0.0.0.0, not just localhost
+    app.listen(PORT, "0.0.0.0", () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
   })
