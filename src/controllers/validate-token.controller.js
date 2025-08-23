@@ -6,13 +6,19 @@ import { ApiResponse } from "../util/ApiResponse.js";
 
 export const validateToken = asyncHandler(async (req, res) => {
   try {
-    // Get token from Authorization header
-    const authHeader = req.header("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      throw new ApiError(401, "No token provided");
+    // Get token from cookies first, fallback to Authorization header
+    let token = req.cookies?.accessToken;
+
+    if (!token) {
+      const authHeader = req.header("Authorization");
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.replace("Bearer ", "").trim();
+      }
     }
 
-    const token = authHeader.replace("Bearer ", "").trim();
+    if (!token) {
+      throw new ApiError(401, "No token provided");
+    }
 
     // Verify the token
     const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
@@ -26,39 +32,21 @@ export const validateToken = asyncHandler(async (req, res) => {
       throw new ApiError(401, "Invalid token - User not found");
     }
 
-    // Generate fresh tokens
-    const accessToken = await user.generateAccessToken();
-    const refreshToken = await user.generateRefreshToken();
-
-    // Update refresh token in database
-    user.refreshToken = refreshToken;
-    await user.save({ validateBeforeSave: false });
-
-    // Send tokens via cookies
-    const options = {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    };
-
-    return res
-      .status(200)
-      .cookie("accessToken", accessToken, options)
-      .cookie("refreshToken", refreshToken, options)
-      .json(
-        new ApiResponse(
-          200,
-          {
-            user: user,
-            accessToken,
-            refreshToken,
-          },
-          "Token validated successfully"
-        )
-      );
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          user: user,
+          isAuthenticated: true,
+        },
+        "Token is valid"
+      )
+    );
   } catch (error) {
+    // If token is expired, return specific error
+    if (error.name === "TokenExpiredError") {
+      throw new ApiError(401, "Token expired");
+    }
     throw new ApiError(401, error?.message || "Invalid token");
   }
 });
