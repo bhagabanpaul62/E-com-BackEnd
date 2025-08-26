@@ -10,6 +10,9 @@ app.use(
       "https://e-com-frontend-ebon-nine.vercel.app",
       "https://tajbee-gthpgdbrafekddhm.centralindia-01.azurewebsites.net",
       "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:3002",
+      "http://localhost:3003",
     ],
     credentials: true, // allows cookies to be sent
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],

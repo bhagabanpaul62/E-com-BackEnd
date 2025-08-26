@@ -6,6 +6,7 @@ import {
   login,
   logout,
   refreshAccessToken,
+  getUser,
 } from "../controllers/user.controllers.js";
 import { upload } from "../middlewares/multer.middlewares.js";
 import { verifyJwt } from "../middlewares/auth.middleware.js";
@@ -41,7 +42,7 @@ router.route("/banners").get(getBanners);
 //user Routes
 router.use("/product", productRoute);
 
-//uiUpdate
-// router.route("/ui")
+//get verified user
+router.route("/get-user").get(verifyJwt,getUser)
 
 export default router;

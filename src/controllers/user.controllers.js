@@ -320,3 +320,23 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
     throw new ApiError(401, error.message || "Invalid refresh token");
   }
 });
+
+//user view for user
+export const getUser = asyncHandler(async (req, res) => {
+  //get the user
+  if (!req.user) {
+    throw new ApiError(401, "user is unauthorized");
+  }
+
+  const user = await User.findById(req.user._id).select(
+    "-password -refreshToken"
+  );
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, user, "user data successfully fetched"));
+});
