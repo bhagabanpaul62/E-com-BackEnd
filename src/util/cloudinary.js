@@ -1,5 +1,5 @@
 import { v2 as cloudinary } from "cloudinary";
-import dotenv from "dotenv"
+import dotenv from "dotenv";
 import fs from "fs";
 dotenv.config();
 cloudinary.config({
@@ -12,18 +12,31 @@ cloudinary.config({
 
 const uploadCloudinary = async (localPath) => {
   try {
+    // Check if file exists before attempting upload
+    if (!fs.existsSync(localPath)) {
+      console.error(`❌ File not found: ${localPath}`);
+      return null;
+    }
+
+    console.log(`📤 Uploading file to Cloudinary: ${localPath}`);
     const response = await cloudinary.uploader.upload(localPath, {
       resource_type: "auto",
     });
-    console.log("file is uploaded in cloudinary", response.url);
-     if (fs.existsSync(localPath)) {
-       fs.unlinkSync(localPath);
-     }
+    console.log("✅ File uploaded to Cloudinary:", response.url);
+
+    // Clean up temp file after successful upload
+    if (fs.existsSync(localPath)) {
+      fs.unlinkSync(localPath);
+      console.log(`🗑️ Cleaned up temp file: ${localPath}`);
+    }
     return response;
   } catch (err) {
-     if (fs.existsSync(localPath)) {
-       fs.unlinkSync(localPath);
-     }
+    console.error(`❌ Cloudinary upload failed for ${localPath}:`, err);
+    // Clean up temp file even if upload failed
+    if (fs.existsSync(localPath)) {
+      fs.unlinkSync(localPath);
+      console.log(`🗑️ Cleaned up temp file after error: ${localPath}`);
+    }
     return null;
   }
 };

@@ -2,6 +2,7 @@ import { Product } from "../models/Product.model.js";
 import { ApiError } from "../util/ApiError.js";
 import { ApiResponse } from "../util/ApiResponse.js";
 import { asyncHandler } from "../util/asyncHandler.js";
+import fs from "fs";
 
 import { uploadCloudinary as uploadToCloudinary } from "../util/cloudinary.js";
 
@@ -50,16 +51,31 @@ export const addProduct = asyncHandler(async (req, res) => {
   if (mainImageFile) {
     try {
       console.log("📤 Uploading main image to Cloudinary...");
+      console.log("📁 Main image file path:", mainImageFile.path);
+
+      // Check if file exists before uploading
+      if (!mainImageFile.path || !fs.existsSync(mainImageFile.path)) {
+        console.error(
+          "❌ Main image file not found at path:",
+          mainImageFile.path
+        );
+        throw new ApiError(500, "Main image file not accessible");
+      }
+
       const mainImageResult = await uploadToCloudinary(mainImageFile.path);
       if (mainImageResult?.secure_url) {
         productData.mainImage = mainImageResult.secure_url;
         console.log("✅ Main image uploaded:", mainImageResult.secure_url);
       } else {
         console.warn("⚠️ Cloudinary returned no secure_url for main image");
+        throw new ApiError(500, "Failed to get image URL from Cloudinary");
       }
     } catch (err) {
       console.error("❌ Main image upload failed:", err);
-      throw new ApiError(500, "Failed to upload main product image");
+      throw new ApiError(
+        500,
+        `Failed to upload main product image: ${err.message}`
+      );
     }
   } else {
     console.log("ℹ️ No main image provided in request");

@@ -6,6 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node src/index.js",
+    "start:prod": "npm run setup:dirs && node src/index.js",
+    "setup:dirs": "node -e \"const fs = require('fs'); const path = require('path'); const dir = path.join(process.cwd(), 'public', 'temp'); if (!fs.existsSync(dir)) { fs.mkdirSync(dir, { recursive: true }); console.log('📁 Created temp directory:', dir); }\"",
     "test": "echo \"No test specified\" && exit 0"
   },
   "author": "",
