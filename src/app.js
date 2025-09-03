@@ -28,6 +28,7 @@ app.use(cookieParser());
 //Routes import
 import userRouter from "./routes/user.routes.js";
 import adminRouter from "./routes/admin.routes.js";
+import reviewRouter from "./routes/review.routes.js";
 import { verifyJwt } from "./middlewares/auth.middleware.js";
 import { isAdmin } from "./middlewares/isAdmin.middleware.js";
 
@@ -36,5 +37,8 @@ app.use("/api/users", userRouter);
 
 //Admin Routes Declaration
 app.use("/api/admin", verifyJwt, isAdmin, adminRouter);
+
+//Review Routes Declaration
+app.use("/api/reviews", reviewRouter);
 
 export { app };
