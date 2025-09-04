@@ -11,7 +11,7 @@ const getUserCart = asyncHandler(async (req, res) => {
   // Find user's cart and populate product details
   const cart = await Cart.findOne({ userId }).populate({
     path: "items.productId",
-    select: "name mainImage price discountPercentage stock",
+    select: "name mainImage price discountPercentage totalStock variants",
   });
 
   if (!cart) {
@@ -35,6 +35,20 @@ const getUserCart = asyncHandler(async (req, res) => {
     totalPrice += item.priceAtAdd * item.quantity;
     totalItems += item.quantity;
   });
+
+  // Log stock information for debugging
+  console.log(
+    "Cart items with stock info:",
+    cart.items.map((item) => ({
+      productId: item.productId._id,
+      name: item.productId.name,
+      totalStock: item.productId.totalStock,
+      variantId: item.variantId,
+      variant: item.productId.variants?.find(
+        (v) => v._id.toString() === item.variantId?.toString()
+      ),
+    }))
+  );
 
   res.status(200).json(
     new ApiResponse(
@@ -65,7 +79,19 @@ const addToCart = asyncHandler(async (req, res) => {
   }
 
   // Check if product is in stock
-  if (product.stock < quantity) {
+  // If variantId is provided, check variant stock, otherwise check product's totalStock
+  let availableStock = 0;
+
+  if (variantId) {
+    const variant = product.variants.find(
+      (v) => v._id.toString() === variantId.toString()
+    );
+    availableStock = variant ? variant.stock : 0;
+  } else {
+    availableStock = product.totalStock || 0;
+  }
+
+  if (availableStock < quantity) {
     throw new ApiError(
       400,
       "Product is out of stock or not enough quantity available"
@@ -113,10 +139,16 @@ const addToCart = asyncHandler(async (req, res) => {
 
   await cart.save();
 
+  // Get populated cart data with product details
+  const populatedCart = await Cart.findOne({ userId }).populate({
+    path: "items.productId",
+    select: "name mainImage price discountPercentage totalStock variants",
+  });
+
   // Recalculate totals
   let totalPrice = 0;
   let totalItems = 0;
-  cart.items.forEach((item) => {
+  populatedCart.items.forEach((item) => {
     totalPrice += item.priceAtAdd * item.quantity;
     totalItems += item.quantity;
   });
@@ -125,7 +157,7 @@ const addToCart = asyncHandler(async (req, res) => {
     new ApiResponse(
       200,
       {
-        items: cart.items,
+        items: populatedCart.items,
         totalItems,
         totalPrice,
       },
@@ -181,10 +213,16 @@ const updateCartItem = asyncHandler(async (req, res) => {
 
   await cart.save();
 
+  // Get populated cart data with product details
+  const populatedCart = await Cart.findOne({ userId }).populate({
+    path: "items.productId",
+    select: "name mainImage price discountPercentage totalStock variants",
+  });
+
   // Recalculate totals
   let totalPrice = 0;
   let totalItems = 0;
-  cart.items.forEach((item) => {
+  populatedCart.items.forEach((item) => {
     totalPrice += item.priceAtAdd * item.quantity;
     totalItems += item.quantity;
   });
@@ -193,7 +231,7 @@ const updateCartItem = asyncHandler(async (req, res) => {
     new ApiResponse(
       200,
       {
-        items: cart.items,
+        items: populatedCart.items,
         totalItems,
         totalPrice,
       },
@@ -235,10 +273,16 @@ const removeFromCart = asyncHandler(async (req, res) => {
 
   await cart.save();
 
+  // Get populated cart data with product details
+  const populatedCart = await Cart.findOne({ userId }).populate({
+    path: "items.productId",
+    select: "name mainImage price discountPercentage totalStock variants",
+  });
+
   // Recalculate totals
   let totalPrice = 0;
   let totalItems = 0;
-  cart.items.forEach((item) => {
+  populatedCart.items.forEach((item) => {
     totalPrice += item.priceAtAdd * item.quantity;
     totalItems += item.quantity;
   });
@@ -247,7 +291,7 @@ const removeFromCart = asyncHandler(async (req, res) => {
     new ApiResponse(
       200,
       {
-        items: cart.items,
+        items: populatedCart.items,
         totalItems,
         totalPrice,
       },
