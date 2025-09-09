@@ -72,9 +72,9 @@ app.get("/api/debug/cors-test", (req, res) => {
     requestHeaders: {
       origin: req.headers.origin,
       host: req.headers.host,
-      authorization: req.headers.authorization ? "Present" : "Missing"
+      authorization: req.headers.authorization ? "Present" : "Missing",
     },
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -82,11 +82,13 @@ app.get("/api/debug/cors-test", (req, res) => {
 app.get("/api/debug/razorpay-config", (req, res) => {
   try {
     // Safely show partial keys for debugging
-    const keyIdSafe = process.env.RAZORPAY_KEY_ID ? 
-      `${process.env.RAZORPAY_KEY_ID.substring(0, 8)}...` : "missing";
-    const keySecretSafe = process.env.RAZORPAY_KEY_SECRET ? 
-      `${process.env.RAZORPAY_KEY_SECRET.substring(0, 4)}...` : "missing";
-    
+    const keyIdSafe = process.env.RAZORPAY_KEY_ID
+      ? `${process.env.RAZORPAY_KEY_ID.substring(0, 8)}...`
+      : "missing";
+    const keySecretSafe = process.env.RAZORPAY_KEY_SECRET
+      ? `${process.env.RAZORPAY_KEY_SECRET.substring(0, 4)}...`
+      : "missing";
+
     res.status(200).json({
       success: true,
       message: "Razorpay configuration",
@@ -95,15 +97,16 @@ app.get("/api/debug/razorpay-config", (req, res) => {
         keySecret: keySecretSafe,
         keyIdLength: process.env.RAZORPAY_KEY_ID?.length || 0,
         keySecretLength: process.env.RAZORPAY_KEY_SECRET?.length || 0,
-        envVarsAvailable: !!process.env.RAZORPAY_KEY_ID && !!process.env.RAZORPAY_KEY_SECRET
+        envVarsAvailable:
+          !!process.env.RAZORPAY_KEY_ID && !!process.env.RAZORPAY_KEY_SECRET,
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: "Error checking Razorpay configuration",
-      error: error.message
+      error: error.message,
     });
   }
 });

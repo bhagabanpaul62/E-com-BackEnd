@@ -10,14 +10,22 @@ import crypto from "crypto";
 
 // Log Razorpay keys for debugging (remove in production)
 console.log("Razorpay Config:", {
-  key_id: process.env.RAZORPAY_KEY_ID ? `${process.env.RAZORPAY_KEY_ID.substring(0, 8)}...` : "missing",
-  key_secret: process.env.RAZORPAY_KEY_SECRET ? `${process.env.RAZORPAY_KEY_SECRET.substring(0, 4)}...` : "missing",
+  key_id: process.env.RAZORPAY_KEY_ID
+    ? `${process.env.RAZORPAY_KEY_ID.substring(0, 8)}...`
+    : "missing",
+  key_secret: process.env.RAZORPAY_KEY_SECRET
+    ? `${process.env.RAZORPAY_KEY_SECRET.substring(0, 4)}...`
+    : "missing",
 });
 
 // Log Razorpay keys for debugging (remove in production)
 console.log("Razorpay Config:", {
-  key_id: process.env.RAZORPAY_KEY_ID ? `${process.env.RAZORPAY_KEY_ID}` : "missing",
-  key_secret: process.env.RAZORPAY_KEY_SECRET ? `${process.env.RAZORPAY_KEY_SECRET.substring(0, 4)}...` : "missing",
+  key_id: process.env.RAZORPAY_KEY_ID
+    ? `${process.env.RAZORPAY_KEY_ID}`
+    : "missing",
+  key_secret: process.env.RAZORPAY_KEY_SECRET
+    ? `${process.env.RAZORPAY_KEY_SECRET.substring(0, 4)}...`
+    : "missing",
 });
 
 // Initialize Razorpay
@@ -39,24 +47,27 @@ export const createRazorpayOrder = asyncHandler(async (req, res) => {
     amount,
     currency,
     userId: req.user?._id,
-    razorpayConfigured: !!process.env.RAZORPAY_KEY_ID && !!process.env.RAZORPAY_KEY_SECRET
+    razorpayConfigured:
+      !!process.env.RAZORPAY_KEY_ID && !!process.env.RAZORPAY_KEY_SECRET,
   });
-  
+
   // Log the actual keys being used (first few characters)
   console.log("Using Razorpay credentials:", {
     key_id: process.env.RAZORPAY_KEY_ID || "missing",
-    key_secret: process.env.RAZORPAY_KEY_SECRET ? `${process.env.RAZORPAY_KEY_SECRET.substring(0, 4)}...` : "missing"
+    key_secret: process.env.RAZORPAY_KEY_SECRET
+      ? `${process.env.RAZORPAY_KEY_SECRET.substring(0, 4)}...`
+      : "missing",
   });
 
   // Format the amount exactly as required by Razorpay
   const amountInPaise = Math.round(amount * 100);
-  
+
   const options = {
     amount: amountInPaise, // Amount in paise
     currency,
     receipt: `receipt_${Date.now()}`,
   };
-  
+
   // Double-check the options format
   console.log("Final Razorpay options:", JSON.stringify(options));
 
@@ -69,41 +80,35 @@ export const createRazorpayOrder = asyncHandler(async (req, res) => {
         message: "Payment gateway configuration error",
         details: {
           keyIdPresent: !!process.env.RAZORPAY_KEY_ID,
-          keySecretPresent: !!process.env.RAZORPAY_KEY_SECRET
-        }
+          keySecretPresent: !!process.env.RAZORPAY_KEY_SECRET,
+        },
       });
     }
 
     console.log("Creating Razorpay order with options:", options);
-    
+
     try {
-      // Explicitly create a Razorpay instance with hardcoded keys for testing
-      // This ensures no environment variable loading issues
-      const freshRazorpay = new Razorpay({
-        key_id: "rzp_test_KDN5uTNLu5ZbaY",
-        key_secret: "fPKTAuJmq1WvpNSQruEEtxsM",
-      });
-      
-      console.log("Created Razorpay instance with hardcoded keys for testing");
-      
-      const order = await freshRazorpay.orders.create(options);
+      // Use the Razorpay instance initialized with environment variables
+      const order = await razorpay.orders.create(options);
       console.log("Razorpay order created successfully:", order.id);
-      res.status(200).json(new ApiResponse(200, order, "Razorpay order created"));
+      res
+        .status(200)
+        .json(new ApiResponse(200, order, "Razorpay order created"));
     } catch (razorpayError) {
       console.error("Razorpay API error:", razorpayError);
       return res.status(500).json({
         success: false,
         message: "Razorpay order creation failed",
         error: razorpayError.message || "Unknown Razorpay error",
-        details: razorpayError
+        details: razorpayError,
       });
     }
   } catch (error) {
     console.error("Error in order creation controller:", error);
     return res.status(500).json({
-      success: false, 
+      success: false,
       message: `Failed to create Razorpay order: ${error.message || "Unknown error"}`,
-      error: error.message || "Unknown error"
+      error: error.message || "Unknown error",
     });
   }
 });
@@ -331,7 +336,10 @@ export const createDirectOrder = asyncHandler(async (req, res) => {
 
   // Validate required fields
   if (!shippingAddressId || !paymentMethod || !productId) {
-    throw new ApiError(400, "Shipping address, payment method, and product ID are required");
+    throw new ApiError(
+      400,
+      "Shipping address, payment method, and product ID are required"
+    );
   }
 
   // Verify address belongs to user
@@ -355,11 +363,13 @@ export const createDirectOrder = asyncHandler(async (req, res) => {
   const subTotal = itemTotal;
 
   // Create order products array with single item
-  const orderProducts = [{
-    productId: product._id,
-    quantity: quantity,
-    price: itemTotal,
-  }];
+  const orderProducts = [
+    {
+      productId: product._id,
+      quantity: quantity,
+      price: itemTotal,
+    },
+  ];
 
   // Calculate shipping charges
   const shippingCharges =
@@ -411,5 +421,7 @@ export const createDirectOrder = asyncHandler(async (req, res) => {
 
   res
     .status(201)
-    .json(new ApiResponse(201, populatedOrder, "Direct order created successfully"));
+    .json(
+      new ApiResponse(201, populatedOrder, "Direct order created successfully")
+    );
 });
